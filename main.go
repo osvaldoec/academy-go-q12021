@@ -2,19 +2,27 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"pokemon/config"
+	"pokemon/controller"
+	router "pokemon/http"
+	"pokemon/repository"
+	"pokemon/service"
+)
+
+var (
+	pokemonRepository repository.PokemonRepository = repository.NewCsvPokemonRepository()
+	pokemonService    service.PokemonService       = service.NewPokemonService(pokemonRepository)
+	pokemonController controller.PokemonController = controller.NewPokemonController(pokemonService)
+	httpRouter        router.Router                = router.NewMuxRouter()
 )
 
 func main() {
-	router := mux.NewRouter()
-	const port string = ":8000"
-	router.HandleFunc("/", func(resp http.ResponseWriter, req *http.Request) {
+	config.ReadConfig()
+	httpRouter.GET("/", func(resp http.ResponseWriter, req *http.Request) {
 		fmt.Fprintln(resp, "Up and running...")
 	})
-	router.HandleFunc("/get", getPokemons).Methods("GET")
-	log.Print("Server listening on port", port)
-	log.Fatalln(http.ListenAndServe(port, router))
+	httpRouter.GET("/get", pokemonController.GetPokemons)
+	httpRouter.SERVE(config.C.Server.Address)
 }
