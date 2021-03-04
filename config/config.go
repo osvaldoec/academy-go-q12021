@@ -1,39 +1,30 @@
 package config
 
 import (
-	"fmt"
-	"log"
-	"os"
-	"path/filepath"
-
-	"github.com/davecgh/go-spew/spew"
 	"github.com/spf13/viper"
 )
 
-type config struct {
-	Server struct {
-		Address string
-	}
+// Configuration - struct to handle variables
+type Configuration struct {
+	Address   string
+	PokemonDB string
 }
 
-var C config
+// ReadConfig - handles main config
+func ReadConfig(configFile string) (*Configuration, error) {
+	public := viper.New()
+	public.SetConfigFile(configFile)
+	if err := public.ReadInConfig(); err != nil {
+		return nil, err
+	}
+	config := &Configuration{}
 
-func ReadConfig() {
-	Config := &C
-	viper.SetConfigName("config")
-	viper.SetConfigType("yml")
-	viper.AddConfigPath(filepath.Join("config"))
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Println(err)
-		log.Fatalln(err)
+	err := public.Unmarshal(config)
+	if err != nil {
+		return nil, err
 	}
 
-	if err := viper.Unmarshal(&Config); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	public.WatchConfig()
 
-	spew.Dump(C)
+	return config, nil
 }

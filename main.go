@@ -1,28 +1,50 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"pokemon/config"
 	"pokemon/controller"
-	router "pokemon/http"
-	"pokemon/repository"
+	"pokemon/router"
 	"pokemon/service"
-)
-
-var (
-	pokemonRepository repository.PokemonRepository = repository.NewCsvPokemonRepository()
-	pokemonService    service.PokemonService       = service.NewPokemonService(pokemonRepository)
-	pokemonController controller.PokemonController = controller.NewPokemonController(pokemonService)
-	httpRouter        router.Router                = router.NewMuxRouter()
+	"pokemon/usecase"
 )
 
 func main() {
-	config.ReadConfig()
-	httpRouter.GET("/", func(resp http.ResponseWriter, req *http.Request) {
-		fmt.Fprintln(resp, "Up and running...")
-	})
-	httpRouter.GET("/get", pokemonController.GetPokemons)
-	httpRouter.SERVE(config.C.Server.Address)
+	var configFile string
+	flag.StringVar(&configFile, "config-file", "config.yml", "Path")
+	flag.Parse()
+
+	configFileLoad, err := config.ReadConfig(configFile)
+	if err != nil {
+		log.Fatal("Error: ", err)
+		os.Exit(1)
+	}
+
+	readFile, err := os.Open(configFileLoad.PokemonDB)
+	if err != nil {
+		log.Fatal("Failed to open pokemon csv file")
+		os.Exit(1)
+	}
+
+	defer readFile.Close()
+
+	// service
+	pokemonService, err := service.New(readFile)
+
+	// usecase
+	usecase := usecase.New(pokemonService)
+
+	// controller
+	pokemonController := controller.New(usecase)
+
+	// router
+	router := router.NewRouter(pokemonController)
+
+	fmt.Printf("HTTP server running on port %v", configFileLoad.Address)
+	http.ListenAndServe(configFileLoad.Address, router)
 }

@@ -4,42 +4,38 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"pokemon/entity"
 	"pokemon/errors"
-	"pokemon/service"
+
+	"github.com/gorilla/mux"
 )
 
-var pokemonService service.PokemonService
-
-// PokemonController - interface to implement differents pokemon methods
-type PokemonController interface {
-	GetPokemons(resp http.ResponseWriter, req *http.Request)
-}
-type controller struct{}
-
-// NewPokemonController - func to create a new pokemon controller
-func NewPokemonController(service service.PokemonService) PokemonController {
-	pokemonService = service
-	return &controller{}
+// UseCase - interface to handle communication
+type UseCase interface {
+	GetByID(pokemonID string) (*entity.Pokemon, error)
 }
 
-func (*controller) GetPokemons(resp http.ResponseWriter, req *http.Request) {
+// Pokemon - struct to implement the usecase interface
+type Pokemon struct {
+	UseCase UseCase
+}
+
+// New - func to create a new pokemon controller
+func New(u UseCase) *Pokemon {
+	return &Pokemon{u}
+}
+
+// GetByID - handle logic from requests and responses
+func (p *Pokemon) GetByID(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-type", "application/json")
-	keys, ok := req.URL.Query()["id"]
+	pathParams := mux.Vars(req)
 
-	err := pokemonService.Validate(keys, ok)
+	pokemon, err := p.UseCase.GetByID(pathParams["id"])
 	if err != nil {
-		resp.WriteHeader(http.StatusBadGateway)
-		json.NewEncoder(resp).Encode(errors.ServiceError{Message: err.Error()})
-		return
-	}
-
-	key := keys[0]
-	pokemons, err := pokemonService.FindOne(key)
-	if err != nil {
-		resp.WriteHeader(http.StatusInternalServerError)
+		resp.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(resp).Encode(errors.ServiceError{Message: err.Error()})
 		return
 	}
 	resp.WriteHeader(http.StatusOK)
-	json.NewEncoder(resp).Encode(pokemons)
+	json.NewEncoder(resp).Encode(pokemon)
 }
