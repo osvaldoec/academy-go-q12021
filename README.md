@@ -25,7 +25,7 @@ This project should be a whole Golang REST API which must incluide:
   - Run the application
   - Use next endpoint to get a pokemon from the csv file:
     ```
-      'http://localhost:8080/get/pokemons/:pokemonID'
+      'http://localhost:8080/get/pokemon/:pokemonID'
     ```
     - If the pokemon exists you should get a JSON like this:
       ```json
