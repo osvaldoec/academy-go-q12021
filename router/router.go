@@ -10,6 +10,7 @@ import (
 // Controller - interface to handle req flow
 type Controller interface {
 	GetByID(resp http.ResponseWriter, req *http.Request)
+	InsertByID(resp http.ResponseWriter, req *http.Request)
 }
 
 // NewRouter - func to handle endpoints
@@ -19,6 +20,8 @@ func NewRouter(controller Controller) *mux.Router {
 		fmt.Fprintln(resp, "Up and running...")
 	})
 	muxDispatcher.HandleFunc("/get/pokemon/{id}", controller.GetByID).Methods("GET")
+
+	muxDispatcher.HandleFunc("/insert/pokemon/{pokemonId}", controller.InsertByID).Methods("POST")
 
 	return muxDispatcher
 }
