@@ -38,7 +38,20 @@ This project should be a whole Golang REST API which must incluide:
     - If not you should get an error message.
 
 ## Second deliverable
-  - Pending
+ - Run the application
+  - Use next endpoint to get a pokemon from the csv file:
+    ```
+      'http://localhost:8080/insert/pokemon/{pokemonId}'
+    ```
+    - If the pokemon exists you should get a JSON like this:
+      ```json
+        {
+          "id": 2,
+          "name": " test 2",
+          "base_experience": "456"
+        }
+      ```
+    - If not you should get an error message.
 
 ## Final deliverable
   - Pending
