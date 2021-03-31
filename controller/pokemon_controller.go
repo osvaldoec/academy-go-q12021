@@ -13,6 +13,7 @@ import (
 // UseCase - interface to handle communication
 type UseCase interface {
 	GetByID(pokemonID string) (*entity.Pokemon, error)
+	InsertByID(pokemonID string) (*entity.Pokemon, error)
 }
 
 // Pokemon - struct to implement the usecase interface
@@ -28,9 +29,24 @@ func New(u UseCase) *Pokemon {
 // GetByID - handle logic from requests and responses
 func (p *Pokemon) GetByID(resp http.ResponseWriter, req *http.Request) {
 	resp.Header().Set("Content-type", "application/json")
-	pathParams := mux.Vars(req)
+	pokemonID := mux.Vars(req)["id"]
 
-	pokemon, err := p.UseCase.GetByID(pathParams["id"])
+	pokemon, err := p.UseCase.GetByID(pokemonID)
+	if err != nil {
+		resp.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(resp).Encode(errors.ServiceError{Message: err.Error()})
+		return
+	}
+	resp.WriteHeader(http.StatusOK)
+	json.NewEncoder(resp).Encode(pokemon)
+}
+
+// InsertByID - handle logic from requests and responses
+func (p *Pokemon) InsertByID(resp http.ResponseWriter, req *http.Request) {
+	resp.Header().Set("Content-type", "application/json")
+	pokemonID := mux.Vars(req)["pokemonId"]
+
+	pokemon, err := p.UseCase.InsertByID(pokemonID)
 	if err != nil {
 		resp.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(resp).Encode(errors.ServiceError{Message: err.Error()})

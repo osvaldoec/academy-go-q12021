@@ -33,8 +33,16 @@ func main() {
 
 	defer readFile.Close()
 
+	csvWrite, err := os.OpenFile(configFileLoad.PokemonDB, os.O_WRONLY|os.O_CREATE|os.O_APPEND, 0644)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return
+	}
+
+	defer csvWrite.Close()
+
 	// service
-	pokemonService, err := service.New(readFile)
+	pokemonService := service.New(readFile, csvWrite)
 
 	// usecase
 	usecase := usecase.New(pokemonService)
