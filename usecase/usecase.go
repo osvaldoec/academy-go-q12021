@@ -8,6 +8,7 @@ import (
 type Service interface {
 	GetByID(PokemonID string) (*entity.Pokemon, error)
 	InsertByID(PokemonID string) (*entity.Pokemon, error)
+	GetItermsPerWorker(numType string, items int, itemsPerWorkers int) (*[]entity.Pokemon, error)
 }
 
 // UseCase - struct to help with app flow
@@ -33,6 +34,16 @@ func (u *UseCase) GetByID(pockemonID string) (*entity.Pokemon, error) {
 // InsertByID - method to manage insertion of a new pokemon
 func (u *UseCase) InsertByID(pockemonID string) (*entity.Pokemon, error) {
 	resp, err := u.service.InsertByID(pockemonID)
+
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+// GetItermsPerWorker - method to get csv data
+func (u *UseCase) GetItermsPerWorker(numType string, items int, itemsPerWorkers int) (*[]entity.Pokemon, error) {
+	resp, err := u.service.GetItermsPerWorker(numType, items, itemsPerWorkers)
 
 	if err != nil {
 		return nil, err

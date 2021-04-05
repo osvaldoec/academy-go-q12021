@@ -11,6 +11,7 @@ import (
 type Controller interface {
 	GetByID(resp http.ResponseWriter, req *http.Request)
 	InsertByID(resp http.ResponseWriter, req *http.Request)
+	GetItermsPerWorker(resp http.ResponseWriter, req *http.Request)
 }
 
 // NewRouter - func to handle endpoints
@@ -22,6 +23,8 @@ func NewRouter(controller Controller) *mux.Router {
 	muxDispatcher.HandleFunc("/get/pokemon/{id}", controller.GetByID).Methods("GET")
 
 	muxDispatcher.HandleFunc("/insert/pokemon/{pokemonId}", controller.InsertByID).Methods("POST")
+
+	muxDispatcher.HandleFunc("/get/pokemon/{type}/{items}/{items-per-worker}", controller.GetItermsPerWorker).Methods("GET")
 
 	return muxDispatcher
 }

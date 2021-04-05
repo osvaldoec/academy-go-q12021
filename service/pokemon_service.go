@@ -84,3 +84,36 @@ func (s *Service) InsertByID(param string) (*entity.Pokemon, error) {
 	csvW.Flush()
 	return result, nil
 }
+
+// GetItermsPerWorker - method to get csv file data
+func (s *Service) GetItermsPerWorker(numType string, items int, itemsPerWorkers int) (*[]entity.Pokemon, error) {
+	dataFile := readFile(s.csvFile)
+
+	return dataFile, nil
+}
+
+func readFile(csvFile *os.File) *[]entity.Pokemon {
+	r := csv.NewReader(csvFile)
+	records := []entity.Pokemon{}
+	for {
+		record, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		pokemonID, err := strconv.Atoi(record[0])
+		if err != nil {
+			log.Println(err)
+		}
+		baseExp, err := strconv.Atoi(record[2])
+		if err != nil {
+			log.Println(err)
+		}
+		pokemon := entity.Pokemon{
+			ID:             pokemonID,
+			Name:           record[1],
+			BaseExperience: baseExp,
+		}
+		records = append(records, pokemon)
+	}
+	return &records
+}
